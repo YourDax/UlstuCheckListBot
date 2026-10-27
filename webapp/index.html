@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Лабы и задания</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  /* Цвета берутся из темы Telegram; запасные значения — для открытия вне Telegram */
+  :root{--f-bg:#fff;--f-page:#f1f2f5;--f-text:#16181d;--f-hint:#6f7685;--f-accent:#2481cc;--f-on-accent:#fff;--f-line:rgba(0,0,0,.09)}
+  @media (prefers-color-scheme:dark){:root{--f-bg:#1d1f24;--f-page:#101114;--f-text:#f2f3f5;--f-hint:#9097a5;--f-accent:#4aa3ff;--f-on-accent:#06223d;--f-line:rgba(255,255,255,.1)}}
+  :root{
+    --card:var(--tg-theme-bg-color,var(--f-bg));
+    --page:var(--tg-theme-secondary-bg-color,var(--f-page));
+    --text:var(--tg-theme-text-color,var(--f-text));
+    --hint:var(--tg-theme-hint-color,var(--f-hint));
+    --accent:var(--tg-theme-button-color,var(--f-accent));
+    --on-accent:var(--tg-theme-button-text-color,var(--f-on-accent));
+    --line:var(--f-line);
+    --red:#e5484d;--orange:#e78a00;--green:#2f9e44;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--page);color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  body{padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
+  button,input,select{font:inherit;color:inherit}
+  button{cursor:pointer;border:0;background:none;padding:0}
+  .wrap{max-width:640px;margin:0 auto}
+
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+  h1{font-size:24px;line-height:1.15;margin:0 0 2px}
+  .sub{color:var(--hint);font-size:13px}
+  .icon-btn{width:40px;height:40px;border-radius:12px;background:var(--card);font-size:18px;color:var(--hint)}
+
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+  .stat{background:var(--card);border-radius:14px;padding:10px 12px;text-align:left}
+  .stat b{display:block;font-size:24px;line-height:1.1}
+  .stat span{font-size:12px;color:var(--hint)}
+  .stat.red b{color:var(--red)} .stat.orange b{color:var(--orange)}
+  .stat.zero b{color:var(--hint)}
+
+  .chips{display:flex;gap:8px;overflow-x:auto;margin:0 -16px 14px;padding:0 16px 2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:7px 12px;border-radius:999px;background:var(--card);font-size:13px;white-space:nowrap}
+  .chip.on{background:var(--accent);color:var(--on-accent)}
+  .chip i{font-style:normal;opacity:.7;margin-left:4px}
+
+  section{margin-bottom:18px}
+  h2{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--hint);margin:0 0 8px 4px;font-weight:600}
+  h2 em{font-style:normal;color:var(--text)}
+  h2.red{color:var(--red)} h2.orange{color:var(--orange)}
+  .hintline{margin:-2px 4px 8px;color:var(--hint);font-size:13px}
+
+  .card{background:var(--card);border-radius:16px;padding:12px 14px 12px 16px;margin-bottom:8px;position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bar,var(--line))}
+  .card.red{--bar:var(--red)} .card.orange{--bar:var(--orange)} .card.blue{--bar:var(--accent)} .card.green{--bar:var(--green)}
+  .card.done .title{text-decoration:line-through;color:var(--hint)}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
+  .subj{font-size:12px;color:var(--hint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .due{flex:none;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--line)}
+  .due.red{background:color-mix(in srgb,var(--red) 16%,transparent);color:var(--red)}
+  .due.orange{background:color-mix(in srgb,var(--orange) 18%,transparent);color:var(--orange)}
+  .title{font-size:16px;font-weight:600;margin:0 0 2px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .open .title{-webkit-line-clamp:unset}
+  .when{color:var(--hint);font-size:13px;margin-bottom:10px}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--page);border-radius:11px;padding:3px;gap:2px;margin-bottom:8px}
+  .seg button{padding:8px 4px;border-radius:9px;font-size:13px;color:var(--hint)}
+  .seg button.on{background:var(--card);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+  .seg button.on[data-s=done]{color:var(--green)}
+  .seg button.on[data-s=doing]{color:var(--accent)}
+  .acts{display:flex;gap:8px}
+  .ghost{flex:1;padding:9px;border-radius:11px;background:var(--page);font-size:13px}
+  .ghost.primary{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-weight:600}
+  .more{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:14px}
+  .open .more{display:block}
+  .more pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;margin:0 0 10px;max-height:240px;overflow:auto;color:var(--text)}
+  .more a{color:var(--accent)}
+  .danger{color:var(--red)}
+
+  .empty{text-align:center;color:var(--hint);padding:36px 12px}
+  .empty big{display:block;font-size:40px;margin-bottom:6px}
+  .toggle{display:block;margin:6px auto 0;color:var(--accent);padding:10px 14px;font-size:14px}
+
+  .fab{position:fixed;right:max(16px,calc(50% - 304px));bottom:calc(20px + env(safe-area-inset-bottom));height:52px;padding:0 20px;border-radius:26px;background:var(--accent);color:var(--on-accent);font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.28)}
+
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:5}
+  .scrim.on{display:flex}
+  .sheet{width:100%;max-width:640px;background:var(--card);border-radius:20px 20px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}
+  .sheet h3{margin:0 0 12px;font-size:18px}
+  .sheet label{display:block;font-size:12px;color:var(--hint);margin:10px 0 4px}
+  .sheet input,.sheet select{width:100%;padding:11px 12px;border-radius:11px;border:1px solid var(--line);background:var(--page);outline:none}
+  .sheet input:focus{border-color:var(--accent)}
+  .two{display:grid;grid-template-columns:1.4fr 1fr;gap:8px}
+  .quick{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 4px}
+  .quick button{padding:7px 12px;border-radius:999px;background:var(--page);font-size:13px}
+  .btns{display:flex;gap:8px;margin-top:16px}
+  .btns button{flex:1;padding:13px;border-radius:12px;background:var(--page);font-weight:600}
+  .btns .ok{background:var(--accent);color:var(--on-accent)}
+
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(88px + env(safe-area-inset-bottom));background:#2b2e35;color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;display:none;gap:14px;align-items:center;z-index:9;max-width:92vw}
+  .toast.on{display:flex}
+  .toast button{color:#7cc0ff;font-weight:600}
+
+  .gate{text-align:center;padding:64px 16px}
+  .gate h1{margin-bottom:8px}
+  .gate a{display:inline-block;margin-top:16px;padding:12px 20px;border-radius:12px;background:var(--accent);color:var(--on-accent);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="scrim" id="scrim"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"><span id="toastText"></span><button id="toastUndo" hidden>Отменить</button></div>
+
+<script>
+(() => {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('secondary_bg_color'); } catch (e) {} }
+  // вне Telegram приложение не работает; ?init= — только для отладки (подпись всё равно проверяет сервер)
+  const initData = (tg && tg.initData) || new URLSearchParams(location.search).get('init') || '';
+  const BOT = 'https://t.me/magchecklistbot';
+
+  const state = { tasks: [], subjects: [], filter: null, showDone: false, openId: null, now: new Date(), loaded: false };
+  const app = document.getElementById('app');
+
+  // ---- маленькие помощники ----
+  const h = (tag, props = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(props)) {
+      if (k === 'class') n.className = v;
+      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) n.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids.flat()) if (kid != null && kid !== false) n.append(kid.nodeType ? kid : document.createTextNode(kid));
+    return n;
+  };
+  const plural = (n, a, b, c) => { const m = n % 100, d = n % 10; return n + ' ' + (m > 10 && m < 20 ? c : d === 1 ? a : d > 1 && d < 5 ? b : c); };
+  const buzz = (k = 'light') => { try { tg && tg.HapticFeedback.impactOccurred(k); } catch (e) {} };
+  const parseDl = s => new Date(s.replace(' ', 'T'));
+
+  async function api(method, path, body) {
+    const r = await fetch(path, { method, headers: { 'X-Telegram-Init-Data': initData, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+    if (r.status === 401) { const e = new Error('auth'); e.auth = true; throw e; }
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || 'Ошибка ' + r.status);
+    return data;
+  }
+
+  // ---- тосты ----
+  let toastTimer;
+  function toast(text, undo) {
+    const box = document.getElementById('toast'), btn = document.getElementById('toastUndo');
+    document.getElementById('toastText').textContent = text;
+    btn.hidden = !undo; btn.onclick = () => { box.classList.remove('on'); undo && undo(); };
+    box.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => box.classList.remove('on'), undo ? 5000 : 2500);
+  }
+
+  // ---- логика сроков ----
+  function urgency(t) {
+    if (t.status === 'done') return 'done';
+    if (t.days === null) return 'nodl';
+    if (t.overdue) return 'overdue';
+    if (t.days <= 3) return 'hot';
+    if (t.days <= 7) return 'week';
+    return 'later';
+  }
+  function dueText(t) {
+    if (t.days === null) return 'без срока';
+    if (t.overdue) return t.days === 0 ? 'время вышло' : 'просрочено на ' + plural(-t.days, 'день', 'дня', 'дней');
+    if (t.days === 0) return 'сегодня';
+    if (t.days === 1) return 'завтра';
+    return 'через ' + plural(t.days, 'день', 'дня', 'дней');
+  }
+  function whenText(t) {
+    if (!t.deadline) return 'Срок не задан';
+    const d = parseDl(t.deadline);
+    const day = d.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' });
+    const hm = t.deadline.slice(11);
+    return hm === '23:59' ? day : day + ', ' + hm;
+  }
+  const tone = u => ({ overdue: 'red', hot: 'orange', week: 'blue', later: '', nodl: '', done: 'green' }[u]);
+
+  // ---- действия ----
+  async function setStatus(t, status) {
+    const prev = t.status; if (prev === status) return;
+    t.status = status; if (status === 'done') t.overdue = false; buzz(status === 'done' ? 'medium' : 'light'); render();
+    try {
+      const r = await api('POST', '/api/app/tasks/' + t.id, { status });
+      Object.assign(t, r.task);
+      if (status === 'done') toast('Готово ✓', () => setStatus(t, prev));
+    } catch (e) { t.status = prev; toast('Не получилось: ' + e.message); }
+    render();
+  }
+  async function patch(t, fields, okText) {
+    try { const r = await api('POST', '/api/app/tasks/' + t.id, fields); Object.assign(t, r.task); toast(okText || 'Сохранено'); }
+    catch (e) { toast('Не получилось: ' + e.message); }
+    render();
+  }
+  async function remove(t) {
+    if (!confirm('Удалить «' + t.title + '» навсегда?')) return;
+    try { await api('DELETE', '/api/app/tasks/' + t.id); state.tasks = state.tasks.filter(x => x !== t); toast('Удалено'); }
+    catch (e) { toast('Не получилось: ' + e.message); }
+    render();
+  }
+
+  // ---- нижний лист ----
+  const scrim = document.getElementById('scrim'), sheet = document.getElementById('sheet');
+  const closeSheet = () => scrim.classList.remove('on');
+  scrim.addEventListener('click', e => { if (e.target === scrim) closeSheet(); });
+  function openSheet(...kids) { sheet.replaceChildren(...kids); scrim.classList.add('on'); }
+
+  const pad = n => String(n).padStart(2, '0');
+  const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const addDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d; };
+
+  function deadlineSheet(t) {
+    const cur = t.deadline ? parseDl(t.deadline) : null;
+    const date = h('input', { type: 'date', value: cur ? ymd(cur) : '' });
+    const time = h('input', { type: 'time', value: cur ? t.deadline.slice(11) : '23:59' });
+    const quick = (label, n) => h('button', { onclick: () => { date.value = ymd(addDays(n)); } }, label);
+    openSheet(
+      h('h3', {}, 'Срок сдачи'), h('div', { class: 'sub' }, t.title),
+      h('div', { class: 'quick' }, quick('Сегодня', 0), quick('Завтра', 1), quick('Через 3 дня', 3), quick('Через неделю', 7), quick('Через 2 недели', 14)),
+      h('div', { class: 'two' }, h('div', {}, h('label', {}, 'Дата'), date), h('div', {}, h('label', {}, 'Время'), time)),
+      h('div', { class: 'btns' },
+        t.deadline ? h('button', { onclick: () => { closeSheet(); patch(t, { deadline: '' }, 'Срок убран'); } }, 'Убрать срок') : null,
+        h('button', { class: 'ok', onclick: () => { if (!date.value) { date.focus(); return; } closeSheet(); patch(t, { deadline: date.value + 'T' + (time.value || '23:59') }, 'Срок сохранён'); } }, 'Сохранить')));
+  }
+
+  function subjectField(value) {
+    const list = h('datalist', { id: 'subjList' }, state.subjects.map(s => h('option', { value: s })));
+    return [h('label', {}, 'Предмет'), h('input', { id: 'subjInput', list: 'subjList', value: value || '', placeholder: 'Выберите или впишите' }), list];
+  }
+
+  function editSheet(t) {
+    const title = h('input', { value: t.title });
+    openSheet(h('h3', {}, 'Изменить'), h('label', {}, 'Название'), title, ...subjectField(t.subject),
+      h('div', { class: 'btns' }, h('button', { class: 'ok', onclick: () => {
+        const subject = document.getElementById('subjInput').value.trim(); closeSheet();
+        patch(t, { title: title.value.trim() || t.title, subject });
+      } }, 'Сохранить')));
+  }
+
+  function newSheet() {
+    const title = h('input', { placeholder: 'Например: Лабораторная работа 4', autofocus: true });
+    const date = h('input', { type: 'date' });
+    openSheet(h('h3', {}, 'Новое задание'), h('label', {}, 'Название'), title, ...subjectField(state.filter || ''),
+      h('label', {}, 'Срок (необязательно)'), date,
+      h('div', { class: 'btns' }, h('button', { class: 'ok', onclick: async () => {
+        if (!title.value.trim()) { title.focus(); return; }
+        const body = { title: title.value.trim(), subject: document.getElementById('subjInput').value.trim(), deadline: date.value || '' };
+        closeSheet();
+        try { const r = await api('POST', '/api/app/tasks', body); state.tasks.push(r.task); toast('Добавлено'); await load(); }
+        catch (e) { toast('Не получилось: ' + e.message); }
+      } }, 'Добавить')));
+  }
+
+  // ---- отрисовка ----
+  function card(t) {
+    const u = urgency(t), open = state.openId === t.id;
+    const seg = h('div', { class: 'seg' }, [['new', 'Надо'], ['doing', 'В работе'], ['done', 'Готово']].map(([s, label]) =>
+      h('button', { 'data-s': s, class: t.status === s ? 'on' : '', onclick: () => setStatus(t, s) }, label)));
+    const more = h('div', { class: 'more' },
+      t.body ? h('pre', {}, t.body) : null,
+      t.link ? h('p', {}, h('a', { href: t.link, target: '_blank', rel: 'noopener' }, 'Открыть сообщение в группе')) : null,
+      h('div', { class: 'acts' }, h('button', { class: 'ghost', onclick: () => editSheet(t) }, '✏️ Изменить'),
+        h('button', { class: 'ghost danger', onclick: () => remove(t) }, '🗑 Удалить')));
+    return h('article', { class: ['card', tone(u), t.status === 'done' ? 'done' : '', open ? 'open' : ''].join(' ').replace(/\s+/g, ' ').trim() },
+      h('div', { class: 'top' }, h('span', { class: 'subj' }, t.subject || 'Без предмета'),
+        t.status === 'done' ? null : h('span', { class: 'due ' + (tone(u) || '') }, dueText(t))),
+      h('h3', { class: 'title', onclick: () => { state.openId = open ? null : t.id; render(); } }, t.title),
+      h('div', { class: 'when' }, whenText(t)), seg,
+      h('div', { class: 'acts' }, h('button', { class: 'ghost' + (t.deadline ? '' : ' primary'), onclick: () => deadlineSheet(t) }, t.deadline ? '📅 Изменить срок' : '📅 Поставить срок'),
+        h('button', { class: 'ghost', onclick: () => { state.openId = open ? null : t.id; render(); } }, open ? 'Свернуть' : 'Подробнее')),
+      more);
+  }
+
+  function render() {
+    const scroll = window.scrollY;
+    const all = state.tasks.filter(t => !state.filter || t.subject === state.filter || (state.filter === '—' && !t.subject));
+    const openTasks = state.tasks.filter(t => t.status !== 'done');
+    const cnt = k => openTasks.filter(t => urgency(t) === k).length;
+    const stat = (cls, n, label) => h('div', { class: 'stat ' + (n ? cls : 'zero') }, h('b', {}, n), h('span', {}, label));
+
+    const today = new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+    const bySubj = {};
+    openTasks.forEach(t => { const k = t.subject || '—'; bySubj[k] = (bySubj[k] || 0) + 1; });
+    const chips = h('div', { class: 'chips' },
+      h('button', { class: 'chip' + (!state.filter ? ' on' : ''), onclick: () => { state.filter = null; render(); } }, 'Все', h('i', {}, openTasks.length)),
+      Object.keys(bySubj).sort((a, b) => a === '—' ? 1 : b === '—' ? -1 : a.localeCompare(b, 'ru')).map(s =>
+        h('button', { class: 'chip' + (state.filter === s ? ' on' : ''), onclick: () => { state.filter = state.filter === s ? null : s; render(); } }, s === '—' ? 'Без предмета' : s, h('i', {}, bySubj[s]))));
+
+    const groups = [
+      ['overdue', '🔥 Просрочено', 'red', ''],
+      ['hot', '⏰ Горит — ближайшие 3 дня', 'orange', ''],
+      ['week', '📅 На этой неделе', '', ''],
+      ['later', '🗓 Позже', '', ''],
+      ['nodl', '❔ Без срока', '', 'Поставьте срок — тогда задание попадёт в напоминания и сводку.'],
+    ];
+    const sections = [];
+    for (const [key, title, cls, hint] of groups) {
+      const items = all.filter(t => urgency(t) === key);
+      if (!items.length) continue;
+      sections.push(h('section', { id: 's-' + key }, h('h2', { class: cls }, title + ' · ', h('em', {}, items.length)), hint ? h('div', { class: 'hintline' }, hint) : null, items.map(card)));
+    }
+    const doneItems = all.filter(t => t.status === 'done');
+    if (!sections.length && !(state.showDone && doneItems.length)) {
+      sections.push(h('div', { class: 'empty' }, h('big', {}, '🎉'), state.filter ? 'По этому предмету всё сдано' : 'Всё сдано — висящих заданий нет'));
+    }
+    if (state.showDone && doneItems.length) sections.push(h('section', {}, h('h2', {}, 'Выполнено · ', h('em', {}, doneItems.length)), doneItems.map(card)));
+
+    app.replaceChildren(
+      h('header', {}, h('div', {}, h('h1', {}, 'Лабы и задания'), h('div', { class: 'sub' }, today)),
+        h('button', { class: 'icon-btn', 'aria-label': 'Обновить', onclick: () => load(true) }, '↻')),
+      h('div', { class: 'stats' }, stat('red', cnt('overdue'), 'просрочено'), stat('orange', cnt('hot') + cnt('week'), 'на 7 дней'), stat('', cnt('nodl'), 'без срока')),
+      chips, ...sections,
+      h('button', { class: 'toggle', onclick: async () => { state.showDone = !state.showDone; if (state.showDone) await load(); else render(); } }, state.showDone ? 'Скрыть выполненные' : 'Показать выполненные'),
+      h('button', { class: 'fab', onclick: newSheet }, '＋ Задание'));
+    window.scrollTo(0, scroll);
+  }
+
+  function gate(title, text) {
+    app.replaceChildren(h('div', { class: 'gate' }, h('h1', {}, title), h('div', { class: 'sub' }, text), h('a', { href: BOT }, 'Открыть @magchecklistbot')));
+  }
+
+  async function load(manual) {
+    if (!initData) return gate('Откройте через Telegram', 'Приложение работает только внутри бота — так никто посторонний не увидит ваши задания.');
+    try {
+      const r = await api('GET', '/api/app/tasks' + (state.showDone ? '?all=1' : ''));
+      state.tasks = r.tasks; state.subjects = r.subjects; state.loaded = true;
+      if (state.filter && !state.tasks.some(t => t.subject === state.filter)) state.filter = null;
+      render(); if (manual) toast('Обновлено');
+    } catch (e) {
+      if (e.auth) return gate('Нет доступа', 'Это приложение открывается только у владельца бота. Если это вы — закройте и откройте его заново из бота.');
+      if (!state.loaded) app.replaceChildren(h('div', { class: 'empty' }, h('big', {}, '⚠️'), 'Не удалось загрузить: ' + e.message, h('button', { class: 'toggle', onclick: () => load() }, 'Повторить')));
+      else toast('Нет связи: ' + e.message);
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && state.loaded && scrim.className.indexOf('on') < 0) load(); });
+  app.replaceChildren(h('div', { class: 'empty' }, 'Загружаю…'));
+  load();
+})();
+</script>
+</body>
+</html>
